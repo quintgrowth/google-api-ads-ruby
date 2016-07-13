@@ -21,11 +21,13 @@
 require 'test/unit'
 
 require 'adwords_api'
+require 'nokogiri'
 
 # Overriding default access levels to public for tests.
 module AdwordsApi
   class BatchJobUtils
     public :extract_soap_operations
+    public :generate_soap_operations
     public :add_padding
   end
 end
@@ -48,12 +50,12 @@ class ResponseStub
   attr_reader :body
 end
 
-VALID_SERVICE_XML = '<?xml version="1.0" encoding="UTF-8"?><env:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:wsdl="https://adwords.google.com/api/adwords/cm/v201509" xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"><env:Header><wsdl:RequestHeader xmlns="https://adwords.google.com/api/adwords/cm/v201509"><userAgent>batch job service test (AwApi-Ruby/0.17.0, Common-Ruby/0.11.1, GoogleAdsSavon/1.0.0, ruby/2.2.1, HTTPI/2.4.1, net_http)</userAgent><developerToken>developer_token</developerToken><clientCustomerId>012-345-6789</clientCustomerId></wsdl:RequestHeader></env:Header><env:Body><mutate xmlns="https://adwords.google.com/api/adwords/cm/v201509"><operations xsi:type="CampaignOperation"><operator>SET</operator><operand><id>0</id><status>PAUSED</status></operand></operations></mutate></env:Body></env:Envelope>'
+VALID_SERVICE_XML = '<?xml version="1.0" encoding="UTF-8"?><env:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:wsdl="https://adwords.google.com/api/adwords/cm/v201605" xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"><env:Header><wsdl:RequestHeader xmlns="https://adwords.google.com/api/adwords/cm/v201605"><userAgent>batch job service test (AwApi-Ruby/0.17.0, Common-Ruby/0.11.1, GoogleAdsSavon/1.0.0, ruby/2.2.1, HTTPI/2.4.1, net_http)</userAgent><developerToken>developer_token</developerToken><clientCustomerId>012-345-6789</clientCustomerId></wsdl:RequestHeader></env:Header><env:Body><mutate xmlns="https://adwords.google.com/api/adwords/cm/v201605"><operations xsi:type="CampaignOperation"><operator>SET</operator><operand><id>0</id><status>PAUSED</status></operand></operations></mutate></env:Body></env:Envelope>'
 EXPECTED_OPERATION = "<operations xsi:type=\"ns1:CampaignOperation\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n  <operator>SET</operator>\n  <operand>\n    <id>0</id>\n    <status>PAUSED</status>\n  </operand>\n</operations>"
 
 class TestBatchJobUtils < Test::Unit::TestCase
 
-  API_VERSION = :v201509
+  API_VERSION = :v201605
 
   # Initialize tests.
   def setup()
@@ -75,8 +77,11 @@ class TestBatchJobUtils < Test::Unit::TestCase
 
   # Testing ability to extract operation from XML.
   def test_operation_from_xml()
-    extracted = @batch_job_utils.extract_soap_operations(VALID_SERVICE_XML)
-    assert_equal(EXPECTED_OPERATION, extracted)
+    extracted = Nokogiri::XML(
+        @batch_job_utils.extract_soap_operations(VALID_SERVICE_XML)
+    )
+    expected = Nokogiri::XML(EXPECTED_OPERATION)
+    assert_equal(clean_xml(expected.to_s), clean_xml(extracted.to_s))
   end
 
   # Testing ability to extract operation from a ruby hash.
@@ -89,9 +94,11 @@ class TestBatchJobUtils < Test::Unit::TestCase
         :status => 'PAUSED'
       }
     }
-    extracted = @batch_job_utils.generate_soap_operations(
-        [operation])
-    assert_equal([EXPECTED_OPERATION], extracted)
+    extracted = Nokogiri::XML(
+        @batch_job_utils.generate_soap_operations([operation]).first
+    )
+    expected = Nokogiri::XML(EXPECTED_OPERATION)
+    assert_equal(clean_xml(expected.to_s), clean_xml(extracted.to_s))
   end
 
   # Testing padding to make sure that it pads to the right length.
@@ -106,5 +113,9 @@ class TestBatchJobUtils < Test::Unit::TestCase
     assert_equal(
         @batch_job_utils.add_padding(' ' * (length_increment + 1)).size,
         2 * length_increment)
+  end
+
+  def clean_xml(xml)
+    return xml.gsub(/\n */, '')
   end
 end

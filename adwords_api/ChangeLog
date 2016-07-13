@@ -1,7 +1,36 @@
+0.20.0:
+  - Started enforcing minumum Ruby runtime version via gemspec.
+  - Removed deprecated API version v201509.
+
+0.19.1:
+  - Support and examples for v201605.
+  - Require google-ads-common 0.12.3 or later from now on to support JSON
+    keyfiles for service accounts.
+
+0.19.0:
+  - Require google-ads-common 0.12.0 or later from now on. This also means
+    that Ruby 2.0 or later is required. Ruby 2.1 or later is recommended.
+  - Removed deprecated API version v201506.
+
+0.18.3:
+  - Support and examples for v201603.
+
+0.18.2:
+  - Require google-ads-common 0.11.3 or later from now on.
+  - Added support for custom user agent strings to include utility usage.
+
+0.18.1:
+  - Support and examples for v201601.
+  - Updated batch_job_utils to handle API changes in v201601.
+  - Require google-ads-common 0.11.2 or later from now on.
+
 0.18.0:
   - Removed deprecated API version v201502.
   - Support for streaming report requests in report_utils.
   - Require google-ads-common 0.11.1 or later from now on.
+  - Updated batch_job_utils to support incremental uploads.
+  - Changed interface of batch_job_utils to avoid requiring users to manually
+    manage SOAP XML.
 
 0.17.0:
   - Support and examples for v201509.
@@ -128,7 +157,7 @@
 
 0.6.2:
   - Require google-ads-common 0.7.3 or later from now on.
-  - Support for OAuth2.0 authentication method.
+  - Support for OAuth2 authentication method.
 
 0.6.1:
   - Require google-ads-common 0.7.1 or later from now on.

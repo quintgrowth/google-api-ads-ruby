@@ -111,9 +111,9 @@ module AdwordsApi
     # - AdwordsApi::Errors::InvalidReportDefinitionError if the report
     #   definition is invalid
     #
-    def get_stream_helper(report_definition, cid = nil, &block)
+    def get_stream_helper(report_definition, cid = nil)
       return AdwordsApi::ReportStream.set_up(
-          self, report_definition, cid, &block)
+          self, report_definition, cid)
     end
 
     # Downloads and returns a report with AWQL.
@@ -180,9 +180,9 @@ module AdwordsApi
     # Returns:
     # - ReportStream object initialized to begin streaming.
     #
-    def get_stream_helper_with_awql(report_query, format, cid = nil, &block)
+    def get_stream_helper_with_awql(report_query, format, cid = nil)
       return AdwordsApi::ReportStream.set_up_with_awql(
-          self, report_query, format, cid, &block)
+          self, report_query, format, cid)
     end
 
     private
@@ -194,7 +194,7 @@ module AdwordsApi
     # specification.
     REPORT_DEFINITION_ORDER = {
       :root => [:selector, :report_name, :report_type, :date_range_type,
-          :download_format, :include_zero_impressions],
+          :download_format],
       :selector => [:fields, :predicates, :date_range, :ordering, :paging],
       :predicates => [:field, :operator, :values],
       :ordering => [:field, :sort_order],
@@ -218,6 +218,7 @@ module AdwordsApi
 
     # Makes request and AdHoc service and returns response.
     def make_adhoc_request(data, cid, &block)
+      @api.utils_reporter.report_utils_used()
       url = @api.api_config.adhoc_report_download_url(
           @api.config.read('service.environment'), @version)
       headers = get_report_request_headers(url, cid)
